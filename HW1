@@ -3,7 +3,7 @@ import time
 from multiprocessing import Process, Queue
 import os
 import signal
-
+import csv
 
 number_of_processes_to_simulate = 4
 
@@ -40,14 +40,24 @@ def mpi_application(
     if rank == 0:
         # Coordinator logic
         inputs = [2, 19, 3, 35, 13, 24, 22, 12, 1]  # Potential Inputs
-
-        for input_data in inputs:
+        
+        output_file = "output.csv"
+        
+        with open(output_file, mode='w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(["Input", "Output"])
+        
+            for input_data in inputs:
                 # Send input to worker
-                send_f(input_data, 2)
-
+                send_f(input_data, 1)
+               
                 # Receive output from worker
                 output = recv_f(1)
-
+                print(' owner 3 ', input_data, output)
+               
+                # Write input and output to CSV
+                print([input_data, output])
+                writer.writerow([input_data, output])
         # Send termination signal to worker
         send_f(None, 1)
 
@@ -60,8 +70,8 @@ def mpi_application(
              
             if input_data is None:
                 # Exit the loop/end the application
-                id = os.getppid()            
-                os.kill(id,signal.SIGTERM)                
+                #id = os.getppid()            
+                #os.kill(id,signal.SIGTERM)                
                 break
 
             # Process the input
